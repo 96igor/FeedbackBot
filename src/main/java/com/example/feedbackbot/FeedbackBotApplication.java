@@ -5,7 +5,7 @@ import com.example.feedbackbot.repository.FeedbackRepository;
 import com.example.feedbackbot.service.FeedbackService;
 import com.example.feedbackbot.service.GoogleDocsService;
 import com.example.feedbackbot.service.OpenAIService;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.feedbackbot.service.TrelloService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,15 +14,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 @SpringBootApplication
 public class FeedbackBotApplication implements CommandLineRunner {
-
-    @Value("${openai.api.key}")
-    private String openAIKey;
-
-    @Value("${google.credentials.file}")
-    private String googleCredentialsFile;
-
-    @Value("${google.document.id}")
-    private String googleDocumentId;
 
     public static void main(String[] args) {
         SpringApplication.run(FeedbackBotApplication.class, args);
@@ -34,15 +25,30 @@ public class FeedbackBotApplication implements CommandLineRunner {
         FeedbackRepository repository = new FeedbackRepository();
 
         // OpenAI
-        OpenAIService openAIService = new OpenAIService(openAIKey);
-
-        // Сервис работы с Feedback
-        FeedbackService feedbackService = new FeedbackService(repository, openAIService);
+        OpenAIService openAIService = new OpenAIService(
+                "sk-your-openai-key" // ключ теперь можно брать из application.properties
+        );
 
         // Google Docs
         GoogleDocsService googleDocsService = new GoogleDocsService(
-                googleCredentialsFile,
-                googleDocumentId
+                "src/main/resources/credentials/credentials.json",
+                "1ri0hQwtsZK2mI78hS_i3VTGm4w3RW0IF5oRYCTPLp7s"
+        );
+
+        // Trello
+        TrelloService trelloService = new TrelloService(
+                "your-trello-api-key",
+                "your-trello-api-token",
+                "your-board-id",
+                "your-list-id"
+        );
+
+        // Feedback Service
+        FeedbackService feedbackService = new FeedbackService(
+                repository,
+                openAIService,
+                googleDocsService,
+                trelloService
         );
 
         // Телеграм бот

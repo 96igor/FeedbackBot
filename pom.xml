@@ -118,6 +118,19 @@
             <version>${spring-boot.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Apache POI для Excel -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>

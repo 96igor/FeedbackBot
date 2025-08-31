@@ -13,6 +13,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 
 import java.io.FileInputStream;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
 public class GoogleDocsService {
@@ -50,5 +51,23 @@ public class GoogleDocsService {
                 .setRequests(Collections.singletonList(insertTextRequest));
 
         docsService.documents().batchUpdate(documentId, body).execute();
+    }
+
+    /**
+     * Сохраняет объект Feedback в Google Docs
+     */
+    public void saveFeedback(com.example.feedbackbot.model.Feedback feedback) throws Exception {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String text = String.format(
+                "Роль: %s\nФилиал: %s\nВремя: %s\nСообщение: %s\nSentiment: %s\nSeverity: %d\n\n",
+                feedback.getRole(),
+                feedback.getBranch(),
+                feedback.getCreatedAt().format(formatter),
+                feedback.getMessage(),
+                feedback.getSentiment(),
+                feedback.getSeverity()
+        );
+
+        appendFeedback(text);
     }
 }

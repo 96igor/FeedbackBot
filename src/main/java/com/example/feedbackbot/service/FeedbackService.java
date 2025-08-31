@@ -9,10 +9,17 @@ public class FeedbackService {
 
     private final FeedbackRepository repository;
     private final OpenAIService openAIService;
+    private final GoogleDocsService googleDocsService;
+    private final TrelloService trelloService;
 
-    public FeedbackService(FeedbackRepository repository, OpenAIService openAIService) {
+    public FeedbackService(FeedbackRepository repository,
+                           OpenAIService openAIService,
+                           GoogleDocsService googleDocsService,
+                           TrelloService trelloService) {
         this.repository = repository;
         this.openAIService = openAIService;
+        this.googleDocsService = googleDocsService;
+        this.trelloService = trelloService;
     }
 
     public Feedback processMessage(String message) {
@@ -30,7 +37,25 @@ public class FeedbackService {
     }
 
     public void saveFeedback(Feedback feedback) {
+        // Сохраняем в базу
         repository.save(feedback);
+
+        // Сохраняем в Google Docs
+        try {
+            googleDocsService.appendFeedback(feedback.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ошибка при сохранении в Google Docs: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Если критический отзыв, создаём Trello-карту
+        if (feedback.getSeverity() >= 4) {
+            try {
+                trelloService.createCard("Критический отзыв", feedback.getMessage());
+            } catch (Exception e) {
+                System.err.println("Ошибка при создании Trello-карты: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 }
-
