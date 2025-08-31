@@ -8,8 +8,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.time.format.DateTimeFormatter;
-
 public class FeedbackBot extends TelegramLongPollingBot {
 
     private final FeedbackService feedbackService;
@@ -28,7 +26,7 @@ public class FeedbackBot extends TelegramLongPollingBot {
             String chatId = update.getMessage().getChatId().toString();
             String text = update.getMessage().getText();
 
-            // Анализируем текст через OpenAI
+            // Создаём Feedback через OpenAIService
             Feedback feedback = openAIService.analyzeFeedback(text);
 
             // Сохраняем в БД
@@ -44,8 +42,8 @@ public class FeedbackBot extends TelegramLongPollingBot {
             // Ответ пользователю
             SendMessage message = new SendMessage();
             message.setChatId(chatId);
-            message.setText("Спасибо за ваш отзыв! Он был обработан как: " + feedback.getSentiment()
-                    + " с критичностью " + feedback.getSeverity());
+            message.setText("Спасибо за отзыв! Sentiment: " + feedback.getSentiment()
+                    + ", Severity: " + feedback.getSeverity());
             try {
                 execute(message);
             } catch (Exception e) {
@@ -55,16 +53,13 @@ public class FeedbackBot extends TelegramLongPollingBot {
     }
 
     private String formatFeedbackForDocs(Feedback feedback) {
-        String timestamp = feedback.getCreatedAt() != null ?
-                feedback.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "неизвестно";
-        return String.format("[%s] Роль: %s, Филиал: %s, Критичность: %d, Текст: %s",
-                timestamp,
+        return String.format("Роль: %s, Филиал: %s, Severity: %d, Sentiment: %s, Текст: %s",
                 feedback.getRole(),
                 feedback.getBranch(),
                 feedback.getSeverity(),
+                feedback.getSentiment(),
                 feedback.getMessage());
     }
-
 
     @Override
     public String getBotUsername() {
@@ -73,6 +68,6 @@ public class FeedbackBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "8148238420:AAF0qhpT-03eW2NKxQ9wqcbRPINVx_xUOiY";
+        return "8148238420:AAF0qhpT-03eW2NKxQ9wqcbRPINVx_xUOiY"; // замени на свой токен
     }
 }
