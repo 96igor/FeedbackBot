@@ -1,14 +1,18 @@
 package com.example.feedbackbot.service;
 
-import com.example.feedbackbot.config.GoogleDocsConfig;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.docs.v1.Docs;
-import com.google.api.services.docs.v1.model.*;
+import com.google.api.services.docs.v1.model.BatchUpdateDocumentRequest;
+import com.google.api.services.docs.v1.model.InsertTextRequest;
+import com.google.api.services.docs.v1.model.Request;
+import com.google.api.services.docs.v1.model.Location;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
+import java.io.FileInputStream;
 import java.util.Collections;
 
 public class GoogleDocsService {
@@ -18,22 +22,19 @@ public class GoogleDocsService {
     private final Docs docsService;
     private final String documentId;
 
-    public GoogleDocsService() throws Exception {
-        this.documentId = GoogleDocsConfig.DOCUMENT_ID;
-        this.docsService = initDocsService();
-    }
+    public GoogleDocsService(String credentialsPath, String documentId) throws Exception {
+        this.documentId = documentId;
 
-    private Docs initDocsService() throws Exception {
-        InputStream in = GoogleDocsService.class.getResourceAsStream("/credentials.json");
-        if (in == null) {
-            throw new RuntimeException("Не найден credentials.json (положи его в src/main/resources/)");
-        }
+        // Загружаем Service Account Credentials
+        GoogleCredentials credentials = ServiceAccountCredentials.fromStream(
+                new FileInputStream(credentialsPath)
+        ).createScoped(Collections.singletonList("https://www.googleapis.com/auth/documents"));
 
-        var httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-
-        return new Docs.Builder(httpTransport, JSON_FACTORY, GoogleOAuth.getCredentials(httpTransport))
-                .setApplicationName(APPLICATION_NAME)
-                .build();
+        this.docsService = new Docs.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                JSON_FACTORY,
+                new HttpCredentialsAdapter(credentials)
+        ).setApplicationName(APPLICATION_NAME).build();
     }
 
     /**
@@ -51,4 +52,3 @@ public class GoogleDocsService {
         docsService.documents().batchUpdate(documentId, body).execute();
     }
 }
-
